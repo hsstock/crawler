@@ -1,0 +1,10 @@
+requests
+beautifulsoup4
+selenium
+python3-xlib
+pymongo
+APScheduler
+lxml
+eth-bloom
+chardet
+pandas

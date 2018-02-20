@@ -1,0 +1,8 @@
+/venv
+/.idea
+/.cache
+__pycache__/
+.DS_Store/
+/News_Crawler.egg-info
+/dist
+/build
