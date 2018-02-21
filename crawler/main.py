@@ -40,7 +40,6 @@ working = False
 timerid='my_job_id'
 #@sched.scheduled_job('cron',day_of_week='mon-fri',hour='0-23', minute='0-59',second='*/1')
 #@sched.scheduled_job('interval',seconds=3)
-
 def scheduled_job():
     print('scheduled_job..')
     if working == False:

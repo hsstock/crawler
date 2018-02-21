@@ -13,7 +13,7 @@ class Sinanews(object):
             self.bloomFilter = BloomFilter()
         else:
             #self.bloomFilter = BloomFilter(int.from_bytes(originalBloom, byteorder='big'))
-            self.bloomFilter = BloomFilter(int.from_bytes(originalBloom, byteorder='big'))
+            self.bloomFilter = BloomFilter(int(originalBloom))
         self.urlExist = False
 
     def get_page(self,code,url):
@@ -75,15 +75,15 @@ class Sinanews(object):
         return self.itemArray
 
     def writeBloomValueToFile(self):
-        file = open(''.join((self.path(),'/bloom.txt')),'wb')
-        file.write(bytes(bin(self.bloomFilter).encode('utf-8')))
+        file = open(''.join((self.path(),'/bloom.txt')),'w+')
+        file.write(str(self.bloomFilter.__int__()))
         file.close()
 
     def readBloomValueFromFile(self):
         file = None
         content = ''
         try:
-            file = open(''.join((self.path(),'/bloom.txt')),'rb')
+            file = open(''.join((self.path(),'/bloom.txt')),'r')
             content = file.read()
             print(content)
             file.close()
@@ -92,12 +92,12 @@ class Sinanews(object):
 
         return content
 
-    def addUrl(self,url):
-        self.urlExist = bytes(url.encode('utf-8')) in self.bloomFilter
-        if self.urlExist:
-            print('This url:{} has existed'.format(url))
-        else:
-            self.bloomFilter.add(bytes(url.encode('utf-8')))
+    # def addUrl(self,url):
+    #     self.urlExist = bytes(url.encode('utf-8')) in self.bloomFilter
+    #     if self.urlExist:
+    #         print('This url:{} has existed'.format(url))
+    #     else:
+    #         self.bloomFilter.add(bytes(url.encode('utf-8')))
 
 
     def path(self):
