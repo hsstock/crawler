@@ -7,8 +7,9 @@ import datetime
 import os
 from apscheduler.schedulers.blocking import BlockingScheduler
 
-sinanews = Sinanews()
-mongodbutil = Mongodbutil('10.173.32.123',27017,'sinanews')
+mongodbutil = Mongodbutil('10.173.32.123',27017,'sinanews','urls')
+sinanews = Sinanews(mongodbutil)
+
 
 sched = BlockingScheduler()
 
@@ -75,8 +76,6 @@ def start_crawl():
             except Exception as err:
                 time.sleep(4 * random.random())
                 print(err)
-                sinanews.writeBloomValueToFile()
-        sinanews.writeBloomValueToFile()
     working = False
     job = sched.add_job(scheduled_job, 'interval', seconds=1, id=timerid)
 

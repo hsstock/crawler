@@ -2,13 +2,19 @@ import requests
 import bs4
 import random
 import time
-# from eth_bloom import BloomFilter
+from eth_bloom import BloomFilter
 import os
 
 class Sinanews(object):
     def __init__(self,mongodbutil):
         self.itemArray = []
         self.mongodbutil = mongodbutil
+        originalBloom = self.readBloomValueFromFile()
+        if originalBloom == '' :
+            self.bloomFilter = BloomFilter()
+        else:
+            #self.bloomFilter = BloomFilter(int.from_bytes(originalBloom, byteorder='big'))
+            self.bloomFilter = BloomFilter(int(originalBloom))
         self.urlExist = False
 
     def get_page(self,code,url):
@@ -42,12 +48,12 @@ class Sinanews(object):
         content = ''
         ret = -1
 
-        self.urlExist = self.mongodbutil.urlIsExist(url)
+        self.urlExist = bytes(url.encode('utf-8')) in self.bloomFilter
         if self.urlExist:
             print('This url:{} has existed'.format(url))
             return ret, content
         else:
-            self.mongodbutil.insertUrls({"url":url})
+            self.bloomFilter.add(bytes(url.encode('utf-8')))
 
         header = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
@@ -69,6 +75,30 @@ class Sinanews(object):
     def get_item_array(self):
         return self.itemArray
 
+    def writeBloomValueToFile(self):
+        file = open(''.join((self.path(),'/bloom.txt')),'w+')
+        file.write(str(self.bloomFilter.__int__()))
+        file.close()
+
+    def readBloomValueFromFile(self):
+        file = None
+        content = ''
+        try:
+            file = open(''.join((self.path(),'/bloom.txt')),'r')
+            content = file.read()
+            print(content)
+            file.close()
+        except Exception as err:
+            print(err)
+
+        return content
+
+    # def addUrl(self,url):
+    #     self.urlExist = bytes(url.encode('utf-8')) in self.bloomFilter
+    #     if self.urlExist:
+    #         print('This url:{} has existed'.format(url))
+    #     else:
+    #         self.bloomFilter.add(bytes(url.encode('utf-8')))
 
 
     def path(self):
