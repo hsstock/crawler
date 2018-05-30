@@ -19,7 +19,7 @@ setup(
     classifiers=[],
     keywords='crawler news',
     packages=find_packages(exclude=('tests', 'docs')),
-    install_requires=requirements
+    install_requires=requirements,
     url='',
     license='Apache License 2.0',
     package_data={'': ['*.*']},

@@ -1,9 +1,11 @@
 import unittest
-from crawler.crawler.sina.sinanews import Sinanews
+from crawler.sina.sinanews import Sinanews
+from crawler.sina.mongodbutil import Mongodbutil
 
 class SinanewsTestCase(unittest.TestCase):
-    url = 'http://stock.finance.sina.com.cn/usstock/quotes/A.html'
-    sinanews = Sinanews()
+    url = 'http://stock.finance.sina.com.cn/hkstock/quotes/NTES.html'
+    mongodbutil = Mongodbutil('10.173.32.123', 27017, 'sinanews', 'urls')
+    sinanews = Sinanews(mongodbutil)
 
     sinanews.get_page('A', url)
     sinanews.writeBloomValueToFile()

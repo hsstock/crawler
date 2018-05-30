@@ -4,6 +4,7 @@ import random
 import time
 # from eth_bloom import BloomFilter
 import os
+import crawler.sina.date_util as dateutil
 
 class Sinanews(object):
     def __init__(self,mongodbutil):
@@ -23,7 +24,7 @@ class Sinanews(object):
                 json = {}
                 json['code'] = code
                 ele = elem.select('span')
-                json['date'] = ele[0].getText()[1:-1]
+                json['date'] = dateutil.format_date(ele[0].getText()[1:-1])
                 s = json['date']
                 ele = elem.select('a')
                 json['title'] = ele[len(ele)-1].getText()
