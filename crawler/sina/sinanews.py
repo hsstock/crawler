@@ -16,27 +16,33 @@ class Sinanews(object):
         self.itemArray = []
         res = requests.get(url,timeout=10)
         res.encoding = "gbk"
-        res.raise_for_status()
-        if res.status_code == 200 :
-            contentSoup = bs4.BeautifulSoup(res.text,'lxml')
-            elems = contentSoup.select('#js_ggzx > li,.li_point > ul > li,.col02_22 > ul > li')
-            for elem in elems:
-                json = {}
-                json['code'] = code
-                ele = elem.select('span')
-                json['date'] = dateutil.format_date(ele[0].getText()[1:-1])
-                s = json['date']
-                ele = elem.select('a')
-                json['title'] = ele[len(ele)-1].getText()
-                print("date:{},title:{}".format(s,json['title']))
-                json['href'] = ele[len(ele)-1].attrs['href']
-                ret,content = self.get_content(json['href'])
-                if ret != -1 :
-                    time.sleep(4 * random.random())
+        try:
+            res.raise_for_status()
+            if res.status_code == 200 :
+                    contentSoup = bs4.BeautifulSoup(res.text,'lxml')
+                    elems = contentSoup.select('#js_ggzx > li,.li_point > ul > li,.col02_22 > ul > li')
+                    for elem in elems:
+                        json = {}
+                        json['code'] = code
+                        ele = elem.select('span')
+                        json['date'] = dateutil.format_date(ele[0].getText()[1:-1])
+                        s = json['date']
+                        ele = elem.select('a')
+                        json['title'] = ele[len(ele)-1].getText()
+                        print("date:{},title:{}".format(s,json['title']))
+                        json['href'] = ele[len(ele)-1].attrs['href']
+                        ret,content = self.get_content(json['href'])
+                        if ret != -1 :
+                            time.sleep(4 * random.random())
 
-                if ret == 0 :
-                    json['content'] = content
-                    self.itemArray.append(json)
+                        if ret == 0 :
+                            json['content'] = content
+                            self.itemArray.append(json)
+        except Exception as err:
+            time.sleep(4 * random.random())
+            print(err)
+        finally:
+            res.close()
 
 
     def get_content(self,url):
@@ -47,8 +53,6 @@ class Sinanews(object):
         if self.urlExist:
             print('This url:{} has existed'.format(url))
             return ret, content
-        else:
-            self.mongodbutil.insertUrls({"url":url})
 
         header = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
@@ -56,15 +60,17 @@ class Sinanews(object):
         res.encoding = "utf-8"
         try:
             res.raise_for_status()
+            if res.status_code == 200:
+                soup = bs4.BeautifulSoup(res.text,'lxml')
+                elems = soup.select('#artibody,.entry-content')
+                if len(elems) > 0 :
+                    content = elems[0].getText()
+                    ret = 0
+            self.mongodbutil.insertUrls({"url": url})
         except Exception as err:
             print(err)
-
-        if res.status_code == 200:
-            soup = bs4.BeautifulSoup(res.text,'lxml')
-            elems = soup.select('#artibody,.entry-content')
-            if len(elems) > 0 :
-                content = elems[0].getText()
-                ret = 0
+        finally:
+            res.close()
         return ret, content
 
     def get_item_array(self):
