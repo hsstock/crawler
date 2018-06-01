@@ -3,6 +3,7 @@ import bs4
 import time
 import random
 import crawler.sina.date_util as dateutil
+import crawler.logger as loger
 
 
 class Sinanewshistory(object):
@@ -51,7 +52,7 @@ class Sinanewshistory(object):
                             s = json['date']
                             ele = elem.select('a')
                             json['title'] = ele[len(ele) - 1].getText()
-                            print("date:{},title:{}".format(s, json['title']))
+                            logger.info("date:{},title:{}".format(s, json['title']))
                             json['href'] = ele[len(ele) - 1].attrs['href']
                             ret, content = self.get_content(json['href'], "gbk")
                             if ret != -1:
@@ -62,7 +63,7 @@ class Sinanewshistory(object):
                                 self.itemArray.append(json)
             except Exception as err:
                 time.sleep(4 * random.random())
-                print(err)
+                logger.warning(err)
             finally:
                 res.close()
 
@@ -97,7 +98,7 @@ class Sinanewshistory(object):
                             s = json['date']
                             ele = elem.select('a')
                             json['title'] = ele[len(ele) - 1].getText()
-                            print("date:{},title:{}".format(s, json['title']))
+                            logger.info("date:{},title:{}".format(s, json['title']))
                             json['href'] = ele[len(ele) - 1].attrs['href']
                             ret, content = self.get_content(json['href'], "utf-8")
                             if ret != -1:
@@ -108,7 +109,7 @@ class Sinanewshistory(object):
                                 self.itemArray.append(json)
             except Exception as err:
                 time.sleep(4 * random.random())
-                print(err)
+                logger.warning(err)
             finally:
                 res.close()
 
@@ -141,7 +142,7 @@ class Sinanewshistory(object):
                             json['href'] = parts1[0]
                             parts2 = parts1[1].split('</a>')
                             json['title'] = parts2[0]
-                            print("date:{},title:{}".format(s, json['title']))
+                            logger.info("date:{},title:{}".format(s, json['title']))
                             ret, content = self.get_content(json['href'], "utf-8")
                             if ret != -1:
                                 time.sleep(4 * random.random())
@@ -151,7 +152,7 @@ class Sinanewshistory(object):
                                 self.itemArray.append(json)
             except Exception as err:
                 time.sleep(4 * random.random())
-                print(err)
+                logger.warning(err)
             finally:
                 res.close()
 
@@ -161,7 +162,7 @@ class Sinanewshistory(object):
 
         urlExist = self.mongodbutil.urlIsExist(url)
         if urlExist:
-            print('This url:{} has existed'.format(url))
+            logger.info('This url:{} has existed'.format(url))
             return ret, content
 
         header = {
@@ -179,7 +180,7 @@ class Sinanewshistory(object):
             self.mongodbutil.insertUrls({"url": url})
         except Exception as err:
             time.sleep(4 * random.random())
-            print(err)
+            logger.warning(err)
         finally:
             res.close()
         return ret, content

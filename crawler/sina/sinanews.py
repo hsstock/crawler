@@ -5,6 +5,7 @@ import time
 # from eth_bloom import BloomFilter
 import os
 import crawler.sina.date_util as dateutil
+import crawler.logger as loger
 
 class Sinanews(object):
     def __init__(self,mongodbutil):
@@ -29,7 +30,7 @@ class Sinanews(object):
                         s = json['date']
                         ele = elem.select('a')
                         json['title'] = ele[len(ele)-1].getText()
-                        print("date:{},title:{}".format(s,json['title']))
+                        loger.info("date:{},title:{}".format(s,json['title']))
                         json['href'] = ele[len(ele)-1].attrs['href']
                         ret,content = self.get_content(json['href'])
                         if ret != -1 :
@@ -40,7 +41,7 @@ class Sinanews(object):
                             self.itemArray.append(json)
         except Exception as err:
             time.sleep(4 * random.random())
-            print(err)
+            loger.warning(err)
         finally:
             res.close()
 
@@ -51,7 +52,7 @@ class Sinanews(object):
 
         self.urlExist = self.mongodbutil.urlIsExist(url)
         if self.urlExist:
-            print('This url:{} has existed'.format(url))
+            loger.info('This url:{} has existed'.format(url))
             return ret, content
 
         header = {
@@ -68,7 +69,7 @@ class Sinanews(object):
                     ret = 0
             self.mongodbutil.insertUrls({"url": url})
         except Exception as err:
-            print(err)
+            loger.warning(err)
         finally:
             res.close()
         return ret, content

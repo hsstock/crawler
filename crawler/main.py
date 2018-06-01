@@ -7,6 +7,9 @@ import pandas as pd
 import datetime
 import os
 from apscheduler.schedulers.blocking import BlockingScheduler
+import crawler.logger as loger
+
+
 
 mongodbutil = Mongodbutil('10.173.32.123', 27017, 'sinanews', 'urls')
 sinanews = Sinanews(mongodbutil)
@@ -48,12 +51,12 @@ def generate_url(market, code):
 # @sched.scheduled_job('cron',day_of_week='mon-fri',hour='0-23', minute='0-59',second='*/1')
 # @sched.scheduled_job('interval',seconds=3)
 def scheduled_job():
-    print('scheduled_job..')
+    loger.info('scheduled_job..')
     if working == False:
         sched.remove_job(timerid)
         start_crawl()
     else:
-        print('pre-timer is working')
+        loger.info('pre-timer is working')
 
 
 def start_crawl():
@@ -63,7 +66,7 @@ def start_crawl():
     '''
     global working
     working = True
-    print('start crawl current news...')
+    loger.info('start crawl current news...')
     for market in MARKET:
         data = read_file(market)
         for indexs in data.index:
@@ -71,7 +74,7 @@ def start_crawl():
             code = data.loc[indexs].values[0][3:]
             url = generate_url(market, code)
 
-            print('Current Time:{}, code:{}, url:{}'.format(datetime.datetime.now(), code, url))
+            loger.info('Current Time:{}, code:{}, url:{}'.format(datetime.datetime.now(), code, url))
 
             try:
                 sinanews.get_page(code, url)
@@ -79,23 +82,23 @@ def start_crawl():
                 if len(items) > 0:
                     mongodbutil.insertItems(items)
                     time.sleep(4 * random.random())
-                    print("store items to mongodb ...")
+                    loger.info("store items to mongodb ...")
                 else:
-                    print("all items exists")
+                    loger.info("all items exists")
             except Exception as err:
                 time.sleep(4 * random.random())
-                print(err)
+                loger.warning(err)
     working = False
     sched.add_job(scheduled_job, 'interval', seconds=1, id=timerid)
 
 
 def scheduled_history_job():
-    print('history_scheduled_job..')
+    loger.info('history_scheduled_job..')
     if working_history == False:
         sched.remove_job(timerid_history)
         start_crawl_history()
     else:
-        print('pre-history-timer is working')
+        loger.info('pre-history-timer is working')
 
 
 def start_crawl_history():
@@ -105,14 +108,14 @@ def start_crawl_history():
     '''
     global working_history
     working_history = True
-    print('start crawl history news...')
+    loger.info('start crawl history news...')
     for market in MARKET:
         data = read_file(market)
         for indexs in data.index:
             market = data.loc[indexs].values[0][0:2]
             code = data.loc[indexs].values[0][3:]
             sinanewshistory.clear_item_array()
-            print('Current Time:{}, code:{}, market:{},history'.format(datetime.datetime.now(), code, market))
+            loger.info('Current Time:{}, code:{}, market:{},history'.format(datetime.datetime.now(), code, market))
 
             try:
                 if market == 'HK':
@@ -126,18 +129,18 @@ def start_crawl_history():
                 if len(items) > 0:
                     mongodbutil.insertItems(items)
                     time.sleep(4 * random.random())
-                    print("store items to mongodb ...")
+                    loger.info("store items to mongodb ...")
                 else:
-                    print("all items exists")
+                    loger.info("all items exists")
             except Exception as err:
                 time.sleep(4 * random.random())
-                print(err)
+                loger.warning(err)
     working_history = False
-    sched.add_job(scheduled_history_job, 'interval', seconds=1, id=timerid_history)
+    sched.add_job(scheduled_history_job, 'interval', days=1, id=timerid_history)
 
 
-print('Starting time: {}'.format(datetime.datetime.now()))
+loger.info('Starting time: {}'.format(datetime.datetime.now()))
 sched.add_job(scheduled_job, 'interval', max_instances=2, seconds=1, id=timerid)
-sched.add_job(scheduled_history_job, 'interval', max_instances=2, seconds=1, id=timerid_history)
+sched.add_job(scheduled_history_job, 'interval', max_instances=2, days=1, id=timerid_history)
 sched.start()
-print('Ending time: {}'.format(datetime.datetime.now()))
+loger.info('Ending time: {}'.format(datetime.datetime.now()))
