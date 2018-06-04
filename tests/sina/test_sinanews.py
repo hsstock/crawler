@@ -9,4 +9,5 @@ class SinanewsTestCase(unittest.TestCase):
 
     sinanews.get_chn_page('SZ', '000735')
 
+
 unittest.main

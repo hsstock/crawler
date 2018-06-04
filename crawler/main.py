@@ -116,31 +116,33 @@ def start_crawl_history():
             code = data.loc[indexs].values[0][3:]
             sinanewshistory.clear_item_array()
             loger.info('Current Time:{}, code:{}, market:{},history'.format(datetime.datetime.now(), code, market))
+            page = 1
+            type = '1'
+            while page != -1:
+                try:
+                    if market == 'HK':
+                        page = sinanewshistory.get_hk_page(market, code, page)
+                    if market == 'US':
+                        page, type = sinanewshistory.get_us_page(market, code, page, type)
+                    if market == 'SZ' or market == 'SH':
+                        page = sinanewshistory.get_chn_page(market, code, page)
 
-            try:
-                if market == 'HK':
-                    sinanewshistory.get_hk_page(market, code)
-                if market == 'US':
-                    sinanewshistory.get_us_page(market, code)
-                if market == 'SZ' or market == 'SH':
-                    sinanewshistory.get_chn_page(market, code)
-
-                items = sinanewshistory.get_item_array()
-                if len(items) > 0:
-                    mongodbutil.insertItems(items)
+                    items = sinanewshistory.get_item_array()
+                    if len(items) > 0:
+                        mongodbutil.insertItems(items)
+                        time.sleep(4 * random.random())
+                        loger.info("store items to mongodb ...")
+                    else:
+                        loger.info("all items exists")
+                except Exception as err:
                     time.sleep(4 * random.random())
-                    loger.info("store items to mongodb ...")
-                else:
-                    loger.info("all items exists")
-            except Exception as err:
-                time.sleep(4 * random.random())
-                loger.warning(err)
+                    loger.warning(err)
     working_history = False
     sched.add_job(scheduled_history_job, 'interval', days=1, id=timerid_history)
 
 
 loger.info('Starting time: {}'.format(datetime.datetime.now()))
-sched.add_job(scheduled_job, 'interval', max_instances=2, seconds=1, id=timerid)
-sched.add_job(scheduled_history_job, 'interval', max_instances=2, days=1, id=timerid_history)
+#sched.add_job(scheduled_job, 'interval', max_instances=2, seconds=1, id=timerid)
+sched.add_job(scheduled_history_job, 'interval', max_instances=2, seconds=1, id=timerid_history)
 sched.start()
 loger.info('Ending time: {}'.format(datetime.datetime.now()))

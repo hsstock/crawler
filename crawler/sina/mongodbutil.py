@@ -16,15 +16,10 @@ class Mongodbutil(object):
         self.collection.insert(items)
 
     def urlIsExist(self,url):
-        items = self.urlcollection.find({"url":url})
-        count = 0
+        items = self.collection.find({"href":url})
         for item in items:
-            count += 1
-
-        if count > 0:
             return True
-        else:
-            return False
+        return False
 
     def insertUrls(self,urls):
         self.urlcollection.insert(urls)
