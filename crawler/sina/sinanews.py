@@ -13,7 +13,7 @@ class Sinanews(object):
         self.mongodbutil = mongodbutil
         self.urlExist = False
 
-    def get_page(self,code,url):
+    def get_page(self,market, code,url):
         self.itemArray = []
         res = requests.get(url,timeout=10)
         res.encoding = "gbk"
@@ -26,7 +26,7 @@ class Sinanews(object):
                         json = {}
                         json['code'] = code
                         temp = elem.__str__()[4:5]
-                        if (temp == '\n'):
+                        if (temp == '\n') and market == 'US':
                             continue
                         ele = elem.select('span')
                         json['date'] = dateutil.format_date(ele[0].getText()[1:-1])

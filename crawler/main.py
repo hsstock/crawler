@@ -77,7 +77,7 @@ def start_crawl():
             loger.info('Current Time:{}, code:{}, url:{}'.format(datetime.datetime.now(), code, url))
 
             try:
-                sinanews.get_page(code, url)
+                sinanews.get_page(market, code, url)
                 items = sinanews.get_item_array()
                 if len(items) > 0:
                     mongodbutil.insertItems(items)
