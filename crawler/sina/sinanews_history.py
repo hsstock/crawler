@@ -19,10 +19,12 @@ class Sinanewshistory(object):
             return 'http://biz.finance.sina.com.cn/usstock/usstock_news.php?pageIndex=' + str(
                 page) + '&symbol=' + code + '&type='
         if market == 'SH':
-            return 'http://vip.stock.finance.sina.com.cn/corp/view/vCB_AllNewsStock.php?symbol=' + str.lower(market) + code + '&Page=' + str(
+            return 'http://vip.stock.finance.sina.com.cn/corp/view/vCB_AllNewsStock.php?symbol=' + str.lower(
+                market) + code + '&Page=' + str(
                 page)
         if market == 'SZ':
-            return 'http://vip.stock.finance.sina.com.cn/corp/view/vCB_AllNewsStock.php?symbol=' + str.lower(market) + code + '&Page=' + str(
+            return 'http://vip.stock.finance.sina.com.cn/corp/view/vCB_AllNewsStock.php?symbol=' + str.lower(
+                market) + code + '&Page=' + str(
                 page)
         else:
             return "url not found"
@@ -35,31 +37,31 @@ class Sinanewshistory(object):
         try:
             res.raise_for_status()
             if res.status_code == 200:
-                    contentSoup = bs4.BeautifulSoup(res.text, 'lxml')
-                    elems = contentSoup.select('#js_ggzx > li,.li_point > ul > li,.col02_22 > ul > li')
-                    if len(elems) < 2:
-                        return -1
-                    for elem in elems:
-                        json = {}
-                        json['code'] = code
-                        ele = elem.select('span')
-                        if len(ele) == 0:
-                            continue
-                        json['date'] = ele[0].getText()
-                        s = json['date']
-                        ele = elem.select('a')
-                        json['title'] = ele[len(ele) - 1].getText()
-                        logger.info("date:{},title:{}".format(s, json['title']))
-                        json['href'] = ele[len(ele) - 1].attrs['href']
-                        json['year'] = 'real'
-                        ret, content = self.get_content(json['href'], "gbk")
-                        if ret != -1:
-                            time.sleep(4 * random.random())
+                contentSoup = bs4.BeautifulSoup(res.text, 'lxml')
+                elems = contentSoup.select('#js_ggzx > li,.li_point > ul > li,.col02_22 > ul > li')
+                if len(elems) < 2:
+                    return -1
+                for elem in elems:
+                    json = {}
+                    json['code'] = code
+                    ele = elem.select('span')
+                    if len(ele) == 0:
+                        continue
+                    json['date'] = ele[0].getText()
+                    s = json['date']
+                    ele = elem.select('a')
+                    json['title'] = ele[len(ele) - 1].getText()
+                    logger.info("date:{},title:{}".format(s, json['title']))
+                    json['href'] = ele[len(ele) - 1].attrs['href']
+                    json['year'] = 'real'
+                    ret, content = self.get_content(json['href'], "gbk")
+                    if ret != -1:
+                        time.sleep(4 * random.random())
 
-                        if ret == 0:
-                            json['content'] = content
+                    if ret == 0:
+                        json['content'] = content
 
-                            self.itemArray.append(json)
+                        self.itemArray.append(json)
         except Exception as err:
             time.sleep(4 * random.random())
             logger.warning(err)
@@ -76,33 +78,33 @@ class Sinanewshistory(object):
         try:
             res.raise_for_status()
             if res.status_code == 200:
-                    contentSoup = bs4.BeautifulSoup(res.text, 'lxml')
-                    elems = contentSoup.select('.xb_news > ul > li')
-                    if len(elems) < 2:
-                        if type.__eq__("1"):
-                            return 1, '2'
-                        else:
-                            return -1, '2'
-                    for elem in elems:
-                        json = {}
-                        json['code'] = code
-                        ele = elem.select('span')
-                        if len(ele) == 0:
-                            continue
-                        json['date'] = dateutil.format_date_us_history(ele[0].getText())
-                        s = json['date']
-                        ele = elem.select('a')
-                        json['title'] = ele[len(ele) - 1].getText()
-                        logger.info("date:{},title:{}".format(s, json['title']))
-                        json['href'] = ele[len(ele) - 1].attrs['href']
-                        json['year'] = 'real'
-                        ret, content = self.get_content(json['href'], "utf-8")
-                        if ret != -1:
-                            time.sleep(4 * random.random())
+                contentSoup = bs4.BeautifulSoup(res.text, 'lxml')
+                elems = contentSoup.select('.xb_news > ul > li')
+                if len(elems) < 2 or page == 100:
+                    if type.__eq__("1"):
+                        return 1, '2'
+                    else:
+                        return -1, '2'
+                for elem in elems:
+                    json = {}
+                    json['code'] = code
+                    ele = elem.select('span')
+                    if len(ele) == 0:
+                        continue
+                    json['date'] = dateutil.format_date_us_history(ele[0].getText())
+                    s = json['date']
+                    ele = elem.select('a')
+                    json['title'] = ele[len(ele) - 1].getText()
+                    logger.info("date:{},title:{}".format(s, json['title']))
+                    json['href'] = ele[len(ele) - 1].attrs['href']
+                    json['year'] = 'real'
+                    ret, content = self.get_content(json['href'], "utf-8")
+                    if ret != -1:
+                        time.sleep(4 * random.random())
 
-                        if ret == 0:
-                            json['content'] = content
-                            self.itemArray.append(json)
+                    if ret == 0:
+                        json['content'] = content
+                        self.itemArray.append(json)
         except Exception as err:
             time.sleep(4 * random.random())
             logger.warning(err)
@@ -118,39 +120,39 @@ class Sinanewshistory(object):
         try:
             res.raise_for_status()
             if res.status_code == 200:
-                    contentSoup = bs4.BeautifulSoup(res.text, 'lxml')
-                    strList = str(contentSoup.select('.datelist > ul'))[10:-12]
-                    elems = strList.split("<br/>")
-                    if len(elems) < 2:
-                            return -1
-                    for elem in elems:
-                        if elem == '':
-                            continue
-                        json = {}
-                        elem = elem.lstrip()
-                        parts = elem.split('<a href="')
-                        json['code'] = code
-                        json['date'] = parts[0].rstrip() + ":00"
-                        s = json['date']
-                        parts1 = parts[1].split('" target="_blank">')
-                        json['href'] = parts1[0]
-                        json['year'] = 'real'
-                        parts2 = parts1[1].split('</a>')
-                        json['title'] = parts2[0]
-                        logger.info("date:{},title:{}".format(s, json['title']))
-                        ret, content = self.get_content(json['href'], "utf-8")
-                        if ret != -1:
-                            time.sleep(4 * random.random())
+                contentSoup = bs4.BeautifulSoup(res.text, 'lxml')
+                strList = str(contentSoup.select('.datelist > ul'))[10:-12]
+                elems = strList.split("<br/>")
+                if len(elems) < 2:
+                    return -1
+                for elem in elems:
+                    if elem == '':
+                        continue
+                    json = {}
+                    elem = elem.lstrip()
+                    parts = elem.split('<a href="')
+                    json['code'] = code
+                    json['date'] = parts[0].rstrip() + ":00"
+                    s = json['date']
+                    parts1 = parts[1].split('" target="_blank">')
+                    json['href'] = parts1[0]
+                    json['year'] = 'real'
+                    parts2 = parts1[1].split('</a>')
+                    json['title'] = parts2[0]
+                    logger.info("date:{},title:{}".format(s, json['title']))
+                    ret, content = self.get_content(json['href'], "utf-8")
+                    if ret != -1:
+                        time.sleep(4 * random.random())
 
-                        if ret == 0:
-                            json['content'] = content
-                            self.itemArray.append(json)
+                    if ret == 0:
+                        json['content'] = content
+                        self.itemArray.append(json)
         except Exception as err:
             time.sleep(4 * random.random())
             logger.warning(err)
         finally:
             res.close()
-        return page+1
+        return page + 1
 
     def get_content(self, url, enco):
         content = ''
