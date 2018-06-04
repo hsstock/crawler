@@ -142,7 +142,7 @@ def start_crawl_history():
 
 
 loger.info('Starting time: {}'.format(datetime.datetime.now()))
-#sched.add_job(scheduled_job, 'interval', max_instances=2, seconds=1, id=timerid)
+sched.add_job(scheduled_job, 'interval', max_instances=2, seconds=1, id=timerid)
 sched.add_job(scheduled_history_job, 'interval', max_instances=2, seconds=1, id=timerid_history)
 sched.start()
 loger.info('Ending time: {}'.format(datetime.datetime.now()))
