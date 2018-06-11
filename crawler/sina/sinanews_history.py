@@ -3,7 +3,7 @@ import bs4
 import time
 import random
 import crawler.sina.date_util as dateutil
-import crawler.logger as loger
+import crawler.logger as logger
 
 
 class Sinanewshistory(object):

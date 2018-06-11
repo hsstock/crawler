@@ -7,24 +7,26 @@ import pandas as pd
 import datetime
 import os
 from apscheduler.schedulers.blocking import BlockingScheduler
-import crawler.logger as loger
+import crawler.logger as logger
+import signal
 
 
-
-mongodbutil = Mongodbutil('10.173.32.123', 27017, 'sinanews', 'urls')
+#mongodbutil = Mongodbutil('10.173.32.123', 27017, 'sinanews', 'urls')
+#mongodbutil = Mongodbutil('127.0.0.1', 27017, 'sinanews', 'urls')
+mongodbutil = Mongodbutil('10.240.154.201', 27017, 'sinanews', 'urls')
 sinanews = Sinanews(mongodbutil)
 sinanewshistory = Sinanewshistory(mongodbutil)
 
 sched = BlockingScheduler()
 
-# MARKET = ['MY', 'US','HK','SZ','SH']
+MARKET_ALL = ['US','HK','SZ','SH']
 MARKET = ['MY']
 
 working = False
 working_history = False
 timerid = 'my_job_id'
 timerid_history = 'my_history_job_id'
-
+is_closing = False
 
 def path():
     return os.path.dirname(__file__)
@@ -51,12 +53,12 @@ def generate_url(market, code):
 # @sched.scheduled_job('cron',day_of_week='mon-fri',hour='0-23', minute='0-59',second='*/1')
 # @sched.scheduled_job('interval',seconds=3)
 def scheduled_job():
-    loger.info('scheduled_job..')
+    logger.info('scheduled_job..')
     if working == False:
         sched.remove_job(timerid)
         start_crawl()
     else:
-        loger.info('pre-timer is working')
+        logger.info('pre-timer is working')
 
 
 def start_crawl():
@@ -66,15 +68,20 @@ def start_crawl():
     '''
     global working
     working = True
-    loger.info('start crawl current news...')
+    logger.info('start crawl current news...')
     for market in MARKET:
+        if is_closing:
+            break
+
         data = read_file(market)
         for indexs in data.index:
+            if is_closing:
+                break
             market = data.loc[indexs].values[0][0:2]
             code = data.loc[indexs].values[0][3:]
             url = generate_url(market, code)
 
-            loger.info('Current Time:{}, code:{}, url:{}'.format(datetime.datetime.now(), code, url))
+            logger.info('Current Time:{}, code:{}, url:{}'.format(datetime.datetime.now(), code, url))
 
             try:
                 sinanews.get_page(code, url)
@@ -82,23 +89,24 @@ def start_crawl():
                 if len(items) > 0:
                     mongodbutil.insertItems(items)
                     time.sleep(4 * random.random())
-                    loger.info("store items to mongodb ...")
+                    logger.info("store items to mongodb ...")
                 else:
-                    loger.info("all items exists")
+                    logger.info("all items exists")
             except Exception as err:
                 time.sleep(4 * random.random())
-                loger.warning(err)
+                logger.warning(err)
     working = False
-    sched.add_job(scheduled_job, 'interval', seconds=1, id=timerid)
+    if not is_closing:
+        sched.add_job(scheduled_job, 'interval', seconds=1, id=timerid)
 
 
 def scheduled_history_job():
-    loger.info('history_scheduled_job..')
+    logger.info('history_scheduled_job..')
     if working_history == False:
         sched.remove_job(timerid_history)
         start_crawl_history()
     else:
-        loger.info('pre-history-timer is working')
+        logger.info('pre-history-timer is working')
 
 
 def start_crawl_history():
@@ -108,14 +116,18 @@ def start_crawl_history():
     '''
     global working_history
     working_history = True
-    loger.info('start crawl history news...')
+    logger.info('start crawl history news...')
     for market in MARKET:
+        if is_closing:
+            break
         data = read_file(market)
         for indexs in data.index:
+            if is_closing:
+                break
             market = data.loc[indexs].values[0][0:2]
             code = data.loc[indexs].values[0][3:]
             sinanewshistory.clear_item_array()
-            loger.info('Current Time:{}, code:{}, market:{},history'.format(datetime.datetime.now(), code, market))
+            logger.info('Current Time:{}, code:{}, market:{},history'.format(datetime.datetime.now(), code, market))
 
             try:
                 if market == 'HK':
@@ -129,18 +141,52 @@ def start_crawl_history():
                 if len(items) > 0:
                     mongodbutil.insertItems(items)
                     time.sleep(4 * random.random())
-                    loger.info("store items to mongodb ...")
+                    logger.info("store items to mongodb ...")
                 else:
-                    loger.info("all items exists")
+                    logger.info("all items exists")
             except Exception as err:
                 time.sleep(4 * random.random())
-                loger.warning(err)
+                logger.warning(err)
     working_history = False
-    sched.add_job(scheduled_history_job, 'interval', days=1, id=timerid_history)
+    if not is_closing:
+        sched.add_job(scheduled_history_job, 'interval', days=1, id=timerid_history)
 
 
-loger.info('Starting time: {}'.format(datetime.datetime.now()))
-sched.add_job(scheduled_job, 'interval', max_instances=2, seconds=1, id=timerid)
-sched.add_job(scheduled_history_job, 'interval', max_instances=2, days=1, id=timerid_history)
-sched.start()
-loger.info('Ending time: {}'.format(datetime.datetime.now()))
+
+def signal_handler(signum,frame):
+    global is_closing
+    logger.info('exit success')
+    is_closing = True
+
+def try_exit():
+    global is_closing
+    if is_closing:
+        logger.info('exit success2')
+
+def main():
+    signal.signal(signal.SIGINT,signal_handler)
+
+    logger.info('Starting time: {}'.format(datetime.datetime.now()))
+    sched.add_job(scheduled_job, 'interval', max_instances=2, seconds=1, id=timerid)
+    #sched.add_job(scheduled_history_job, 'interval', max_instances=2, days=1, id=timerid_history)
+    sched.start()
+    logger.info('Ending time: {}'.format(datetime.datetime.now()))
+
+def generate_all_urls():
+    urls = []
+    for market in MARKET_ALL:
+        data = read_file(market)
+        for indexs in data.index:
+            market = data.loc[indexs].values[0][0:2]
+            code = data.loc[indexs].values[0][3:]
+            url = generate_url(market, code)
+            urls.append(url)
+    # 更改数组的栏目名称
+    datas = pd.DataFrame(urls, columns=['URL'])
+
+    # 生成excel文件到本地
+    data = datas.to_excel('./urls.xls')
+
+
+if __name__ == "__main__":
+    main()

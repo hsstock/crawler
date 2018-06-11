@@ -6,3 +6,6 @@ __pycache__/
 /News_Crawler.egg-info
 /dist
 /build
+/crawler/log.txt
+/crawler/urls.xls
+*.pyc

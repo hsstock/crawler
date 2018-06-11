@@ -6,7 +6,8 @@ class Mongodbutil(object):
         self.port = port
         self.client = MongoClient(ip,port)
         self.db = self.client.admin
-        self.db.authenticate('root','experiment')
+        #self.db.authenticate('root','experiment')
+        #self.db.authenticate(' ', ' ')
         self.collection = self.db[collection]
         self.urlcollection = self.db[urlcollection]
 
