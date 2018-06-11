@@ -32,6 +32,7 @@ class Sinanewshistory(object):
     def get_hk_page(self, market, code, page):
         self.itemArray = []
         url = self.generate_page_url(market, code, page)
+        logger.info('fetch url: {}'.format(url))
         res = requests.get(url, timeout=10)
         res.encoding = "gbk"
         try:
@@ -73,6 +74,7 @@ class Sinanewshistory(object):
         self.itemArray = []
         url = self.generate_page_url(market, code, page)
         url = url + type
+        logger.info('fetch url: {}'.format(url))
         res = requests.get(url, timeout=10)
         res.encoding = "gbk"
         try:
@@ -115,6 +117,7 @@ class Sinanewshistory(object):
     def get_chn_page(self, market, code, page):
         self.itemArray = []
         url = self.generate_page_url(market, code, page)
+        logger.info('fetch url: {}'.format(url))
         res = requests.get(url, timeout=10)
         res.encoding = "gbk"
         try:

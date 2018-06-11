@@ -13,7 +13,7 @@ import signal
 
 #mongodbutil = Mongodbutil('10.173.32.123', 27017, 'sinanews', 'urls')
 #mongodbutil = Mongodbutil('127.0.0.1', 27017, 'sinanews', 'urls')
-mongodbutil = Mongodbutil('10.240.154.201', 27017, 'sinanews', 'urls')
+mongodbutil = Mongodbutil('10.240.154.201', 27017, 'sinanews')
 sinanews = Sinanews(mongodbutil)
 sinanewshistory = Sinanewshistory(mongodbutil)
 
@@ -127,11 +127,13 @@ def start_crawl_history():
             market = data.loc[indexs].values[0][0:2]
             code = data.loc[indexs].values[0][3:]
             sinanewshistory.clear_item_array()
-            logger.info('Current Time:{}, code:{}, market:{},history'.format(datetime.datetime.now(), code, market))
+            logger.info('Current Time:{}, code:{}, market:{}'.format(datetime.datetime.now(), code, market))
 
             page = 1
             type = '1'
             while page != -1:
+                if is_closing:
+                    break
                 try:
                     if market == 'HK':
                         page = sinanewshistory.get_hk_page(market, code, page)
