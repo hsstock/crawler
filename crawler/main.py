@@ -129,24 +129,28 @@ def start_crawl_history():
             sinanewshistory.clear_item_array()
             logger.info('Current Time:{}, code:{}, market:{},history'.format(datetime.datetime.now(), code, market))
 
-            try:
-                if market == 'HK':
-                    sinanewshistory.get_hk_page(market, code)
-                if market == 'US':
-                    sinanewshistory.get_us_page(market, code)
-                if market == 'SZ' or market == 'SH':
-                    sinanewshistory.get_chn_page(market, code)
+            page = 1
+            type = '1'
+            while page != -1:
+                try:
+                    if market == 'HK':
+                        page = sinanewshistory.get_hk_page(market, code, page)
+                    if market == 'US':
+                        page, type = sinanewshistory.get_us_page(market, code, page, type)
+                    if market == 'SZ' or market == 'SH':
+                        page = sinanewshistory.get_chn_page(market, code, page)
 
-                items = sinanewshistory.get_item_array()
-                if len(items) > 0:
-                    mongodbutil.insertItems(items)
+                    items = sinanewshistory.get_item_array()
+                    if len(items) > 0:
+                        mongodbutil.insertItems(items)
+                        time.sleep(4 * random.random())
+                        logger.info("store items to mongodb ...")
+                    else:
+                        logger.info("all items exists")
+                except Exception as err:
                     time.sleep(4 * random.random())
-                    logger.info("store items to mongodb ...")
-                else:
-                    logger.info("all items exists")
-            except Exception as err:
-                time.sleep(4 * random.random())
-                logger.warning(err)
+                    logger.warning(err)
+
     working_history = False
     if not is_closing:
         sched.add_job(scheduled_history_job, 'interval', days=1, id=timerid_history)
