@@ -167,8 +167,8 @@ def main():
     signal.signal(signal.SIGINT,signal_handler)
 
     logger.info('Starting time: {}'.format(datetime.datetime.now()))
-    sched.add_job(scheduled_job, 'interval', max_instances=2, seconds=1, id=timerid)
-    #sched.add_job(scheduled_history_job, 'interval', max_instances=2, days=1, id=timerid_history)
+    #sched.add_job(scheduled_job, 'interval', max_instances=2, seconds=1, id=timerid)
+    sched.add_job(scheduled_history_job, 'interval', max_instances=2, seconds=1, id=timerid_history)
     sched.start()
     logger.info('Ending time: {}'.format(datetime.datetime.now()))
 

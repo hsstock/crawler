@@ -13,7 +13,7 @@ class Sinanews(object):
         self.mongodbutil = mongodbutil
         self.urlExist = False
 
-    def get_page(self,code,url):
+    def get_page(self,market, code,url):
         self.itemArray = []
         res = requests.get(url,timeout=10)
         res.encoding = "gbk"
@@ -25,6 +25,9 @@ class Sinanews(object):
                     for elem in elems:
                         json = {}
                         json['code'] = code
+                        temp = elem.__str__()[4:5]
+                        if (temp == '\n') and market == 'US':
+                            continue
                         ele = elem.select('span')
                         json['date'] = dateutil.format_date(ele[0].getText()[1:-1])
                         s = json['date']
@@ -32,6 +35,7 @@ class Sinanews(object):
                         json['title'] = ele[len(ele)-1].getText()
                         logger.info("date:{},title:{}".format(s, json['title']))
                         json['href'] = ele[len(ele)-1].attrs['href']
+                        json['year'] = 'guess'
                         ret,content = self.get_content(json['href'])
                         if ret != -1 :
                             time.sleep(4 * random.random())
@@ -67,7 +71,6 @@ class Sinanews(object):
                 if len(elems) > 0 :
                     content = elems[0].getText()
                     ret = 0
-            self.mongodbutil.insertUrls({"url": url})
         except Exception as err:
             logger.warning(err)
         finally:

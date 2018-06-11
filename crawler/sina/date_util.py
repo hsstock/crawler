@@ -1,5 +1,6 @@
 import time
 import datetime
+import pymongo
 
 def format_date(strDate):
     if isVaildDate(strDate):
@@ -38,4 +39,15 @@ def format_date_us_history(strDate):
 
 
 if __name__ == '__main__':
-    print(format_date_us_history('郭静的互联网圈 | 2018年03月02日 15:41'))
+    connection = pymongo.MongoClient('10.173.32.123', 27017)
+    admin = connection['admin']
+    admin.authenticate('root', 'experiment')
+    for s in admin.sinanews.find({"href": {"$exists": True}}):
+        date = s['date']
+        date = format_date(date)
+        if date > '2018-06-04 20:59:59':
+            temp = date.partition("-")
+            date = '2017-' + temp[2]
+        admin.sinanews.update({'_id': s['_id']}, {'$set': {'date': date}})
+        admin.sinanews.update({'_id': s['_id']}, {'$set': {'year': 'guess'}})
+        print(s['title'])
